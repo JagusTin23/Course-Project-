@@ -3,25 +3,29 @@ library(reshape2)
 
 #Downloading files from source.
 fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-download.file(fileUrl, destfile = "./data/SamsumgAcc_data.zip", method = "curl")
+download.file(fileUrl, destfile = "./SamsumgAcc_data.zip", method = "curl")
+
+unzip("SamsumgAcc_data.zip")
 
 #Reading test data from file. Creating one data frame for the test data
-test <- read.table("X_test.txt", header = FALSE)
-subject <- read.table("subject_test.txt", header = FALSE)
-activityTest <- read.table("y_test.txt", header = FALSE)
+test <- read.table("./UCI HAR Dataset/test/X_test.txt", header = FALSE)
+subject <- read.table("./UCI HAR Dataset/test/subject_test.txt", header = FALSE)
+activityTest <- read.table("./UCI HAR Dataset/test/y_test.txt", header = FALSE)
 testdata <- cbind(subject, activityTest, test)
 
 #Reading train data from file. Creating one data frame for the train data
-train <- read.table("X_train.txt", header = FALSE)
-subject2 <- read.table("subject_train.txt", header = FALSE)
-activityTrain <- read.table("y_train.txt", header = FALSE)
+train <- read.table("./UCI HAR Dataset/train/X_train.txt", header = FALSE)
+subject2 <- read.table("./UCI HAR Dataset/train/subject_train.txt", header = FALSE)
+activityTrain <- read.table("./UCI HAR Dataset/train/y_train.txt", header = FALSE)
+
 traindata <- cbind(subject2, activityTrain, train)
 
 #Part 1: Merging test and train data: 
 allData <- rbind(traindata, testdata)
 
 #Assigning column (variable) names to data frame (step 4):
-features <- read.table("features.txt", header = FALSE, stringsAsFactor = FALSE)
+features <- read.table("./UCI HAR Dataset/features.txt", header = FALSE, stringsAsFactor = FALSE)
+
 varNames <- features[,2]
 names(allData)[1:2] <- c("subject", "activity")
 names(allData)[3:563] <- c(varNames) 
@@ -45,7 +49,7 @@ meanSTD$activity <- gsub("5", "STANDING", meanSTD$activity)
 meanSTD$activity <- gsub("6", "LAYING", meanSTD$activity)
 meanSTD$activity <- as.factor(meanSTD$activity)
 
-#Part 4: Labeling data set with descriptive variable names. On lines 23-27, columns were given names using the variables names provided in the features.txt file. Given the limited information provided for each variable, I did not find it appropriate to rename the variables. It is not really clear what each variable is based on the information provided and thus I believe renaming the variables could lead to confusion. I partially followed suggested guidelines for proprer column naming  and substituted any non letter character from the variable names with nothing. As to letter case, I find the variables are more readable having upper/lower case and therefore chose not to make them all lower or upper case. 
+#Part 4: Labeling data set with descriptive variable names. On lines 26-31, columns were given names using the variables names provided in the features.txt file. Given the limited information provided for each variable, I did not find it appropriate to rename the variables. It is not really clear what each variable is based on the information provided and thus I believe renaming the variables could lead to confusion. I partially followed suggested guidelines for proprer column naming  and substituted any non letter character from the variable names with nothing. As to letter case, I find the variables are more readable having upper/lower case and therefore chose not to make them all lower or upper case. 
 
 names(meanSTD)[3:88] <- gsub("-","",names(meanSTD)[3:88])
 names(meanSTD)[3:88] <- gsub("\\(\\)","",names(meanSTD)[3:88])
@@ -58,7 +62,10 @@ names(meanSTD)[3:88] <- gsub(",","",names(meanSTD)[3:88])
 variables <- names(meanSTD)[3:88]
 tidyMean <- melt(meanSTD, id=c("subject", "activity"), measure.vars = c(variables))
 finalData <- dcast(tidyMean, subject + activity ~ variable, mean) 
-names(finalData)
+
 #Exporting data to .txt file.
 write.table(finalData, file = "SamsungMeanData.txt", row.names=FALSE)
 
+#View data
+view <- read.table("SamsungMeanData.txt", header=TRUE)
+head(view)
